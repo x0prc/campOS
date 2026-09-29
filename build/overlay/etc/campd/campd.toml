@@ -1,0 +1,21 @@
+# campOS default configuration.
+# Everything here is a privacy-safe default; changes are opt-in.
+
+[firewall]
+default_deny = true
+allowed_outbound_uids = []
+allowed_domains = []
+
+[mic]
+kill_switch = false
+block_usb_mics = true
+block_internal_mics = true
+
+[dns]
+blocklists = []
+listen = "127.0.0.1"
+port = 53
+
+[waydroid]
+auto_freeze = true
+freeze_delay_s = 60

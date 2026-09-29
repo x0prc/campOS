@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "campd"
+version = "0.0.1"
+description = "campOS privacy daemon and campctl CLI"
+requires-python = ">=3.11"
+license = "GPL-3.0-or-later"
+
+[project.scripts]
+campctl = "campd.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["campd*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

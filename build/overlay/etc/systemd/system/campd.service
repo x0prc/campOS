@@ -1,0 +1,14 @@
+[Unit]
+Description=campOS privacy daemon
+After=network-pre.target pipeewire.service
+Wants=network-pre.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/campctl firewall apply
+ExecStart=/usr/bin/campctl mic status
+RuntimeDirectory=campd
+
+[Install]
+WantedBy=multi-user.target

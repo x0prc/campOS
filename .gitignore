@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.venv/
+dist/
+build/output/
+build/userpatches/cache/
+*.img
+*.img.xz
