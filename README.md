@@ -51,7 +51,9 @@ See [docs/architecture.md](docs/architecture.md) for the full picture and
 ```
 campd/       Privacy daemon + campctl CLI (Python)
 build/       Image build scripts, Armbian overlay, userpatches
-docs/        Architecture overview + ADRs
+docs/        Architecture overview + ADRs + hardware matrix + lab procedures
+fixtures/    Real-device telemetry domain lists (blocklist test data)
+tools/       Capture-analysis scripts (telemetry extraction)
 ```
 
 ## Status

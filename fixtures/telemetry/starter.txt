@@ -1,0 +1,31 @@
+# Starter telemetry blocklist
+
+# Well-known Google/Android telemetry & ads endpoints (from public docs).
+# This is a SEED, not a capture — replace/extend with real captures from
+# the lab procedure in docs/lab/airtel-telemetry-capture.md.
+# Format: one domain per line, consumed by campd.dns.
+
+# Google Analytics / Firebase measurement
+google-analytics.com
+www.google-analytics.com
+analytics.google.com
+app-measurement.com
+region1.app-measurement.com
+
+# Google tag / ads
+googletagmanager.com
+www.googletagmanager.com
+doubleclick.net
+www.doubleclick.net
+googleadservices.com
+pagead2.googlesyndication.com
+adservice.google.com
+
+# Google device metrics & checkins
+www.googleapis.com
+mtalk.google.com
+device-metrics-us.google.com
+device-metrics-xyz.google.com
+
+# Airtel Xstream (verify against your own capture before relying on these)
+# airtel-tv telemetry hosts go here after capture

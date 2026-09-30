@@ -8,3 +8,5 @@ build/output/
 build/userpatches/cache/
 *.img
 *.img.xz
+*.pcap
+*.pcapng

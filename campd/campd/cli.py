@@ -39,6 +39,11 @@ def main(argv: list[str] | None = None) -> int:
     wd_sub.add_parser("start")
     wd_sub.add_parser("stop")
 
+    dns_p = sub.add_parser("dns", help="local resolver + blocklists")
+    dns_sub = dns_p.add_subparsers(dest="dns_cmd", required=True)
+    dns_sub.add_parser("show", help="render dnsmasq drop-in config")
+    dns_sub.add_parser("apply", help="write config and reload dnsmasq")
+
     fr = sub.add_parser("factory-reset", help="wipe data and roll back slot")
     fr.add_argument("--yes", action="store_true",
                     help="confirm destructive reset")
@@ -54,6 +59,8 @@ def main(argv: list[str] | None = None) -> int:
         return _mic(args, cfg)
     if args.cmd == "waydroid":
         return _waydroid(args, cfg)
+    if args.cmd == "dns":
+        return _dns(args, cfg)
     if args.cmd == "factory-reset":
         return _factory_reset(args)
     return 2
@@ -104,6 +111,18 @@ def _waydroid(args, cfg) -> int:
     else:
         sup.stop()
         print("waydroid stopped")
+    return 0
+
+
+def _dns(args, cfg) -> int:
+    from . import dns as dnsmod
+
+    if args.dns_cmd == "show":
+        domains = dnsmod.collect_domains(cfg.dns.blocklists)
+        print(dnsmod.render_dnsmasq(cfg.dns, domains), end="")
+        return 0
+    dnsmod.apply(cfg.dns)
+    print("dnsmasq config written and reloaded")
     return 0
 
 
