@@ -48,6 +48,11 @@ def _normalize(line: str) -> str | None:
     return token
 
 
+def is_domain(token: str) -> bool:
+    """True if token is a syntactically valid domain name."""
+    return bool(_DOMAIN_RE.match(token.strip().lower().rstrip(".")))
+
+
 def render_dnsmasq(cfg: DnsConfig, domains: list[str] | None = None) -> str:
     """Render the campd dnsmasq drop-in config."""
     domains = domains if domains is not None else []

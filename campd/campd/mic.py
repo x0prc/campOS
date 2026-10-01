@@ -11,11 +11,13 @@ requires root and is exercised on-device, not in unit tests.
 
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
 
 from .config import MicConfig
 
 UDEV_RULES_PATH = Path("/etc/udev/rules.d/99-campd-mic.rules")
+PIPEWIRE_DROPIN_PATH = Path("/etc/pipewire/pipewire.conf.d/99-campd-mic-kill.conf")
 
 # Block USB audio capture interfaces (subclass 1 = audio streaming).
 UDEV_USB_RULE = (
@@ -61,3 +63,34 @@ def render_pipewire_mute_snippet(cfg: MicConfig) -> str:
 def waydroid_has_mic(cfg: MicConfig) -> bool:
     """True if the Waydroid container may receive capture devices."""
     return not cfg.kill_switch
+
+
+def apply(cfg: MicConfig, *, runner=subprocess.run,
+          rules_path: Path = UDEV_RULES_PATH,
+          pipewire_path: Path = PIPEWIRE_DROPIN_PATH) -> bool:
+    """Install or remove kill-switch artifacts and reload udev.
+
+    Returns True if udev was reloaded (target system), False if the rules
+    were written/removed but udevadm was unavailable (dev machine).
+    """
+    rules = render_udev_rules(cfg)
+    try:
+        if rules:
+            _write(rules_path, rules)
+            snippet = render_pipewire_mute_snippet(cfg)
+            if snippet:
+                _write(pipewire_path, snippet)
+        else:
+            rules_path.unlink(missing_ok=True)
+            pipewire_path.unlink(missing_ok=True)
+        runner(["udevadm", "control", "--reload-rules"], check=True)
+        runner(["udevadm", "trigger", "--action=add",
+                "--subsystem-match=sound"], check=False)
+        return True
+    except (FileNotFoundError, subprocess.CalledProcessError, OSError):
+        return False
+
+
+def _write(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content)

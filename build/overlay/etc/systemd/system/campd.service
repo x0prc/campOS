@@ -1,14 +1,23 @@
 [Unit]
-Description=campOS privacy daemon
-After=network-pre.target pipeewire.service
+# campOS privacy enforcement — must be in place BEFORE networking comes up.
+# Pattern from systemd.service(5): firewall services use DefaultDependencies=no
+# to order strictly before network-pre.target.
+Description=campOS privacy enforcement (firewall, DNS, mic)
+DefaultDependencies=no
+After=local-fs.target
+Before=network-pre.target dnsmasq.service multi-user.target
 Wants=network-pre.target
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
+# Order matters: fail-safe first. If firewall apply fails, later steps are
+# skipped and networking stays blocked (privacy preserved, journal has error).
 ExecStart=/usr/bin/campctl firewall apply
-ExecStart=/usr/bin/campctl mic status
-RuntimeDirectory=campd
+ExecStart=/usr/bin/campctl dns apply
+ExecStart=/usr/bin/campctl mic sync
+StandardOutput=journal
+StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
