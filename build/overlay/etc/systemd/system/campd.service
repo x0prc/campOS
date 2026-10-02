@@ -13,9 +13,9 @@ Type=oneshot
 RemainAfterExit=yes
 # Order matters: fail-safe first. If firewall apply fails, later steps are
 # skipped and networking stays blocked (privacy preserved, journal has error).
-ExecStart=/usr/bin/campctl firewall apply
-ExecStart=/usr/bin/campctl dns apply
-ExecStart=/usr/bin/campctl mic sync
+ExecStart=/usr/local/bin/campctl firewall apply
+ExecStart=/usr/local/bin/campctl dns apply
+ExecStart=/usr/local/bin/campctl mic sync
 StandardOutput=journal
 StandardError=journal
 

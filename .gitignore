@@ -10,3 +10,6 @@ build/userpatches/cache/
 *.img.xz
 *.pcap
 *.pcapng
+build/armbian-build/
+build/build.log
+build/userpatches/*.log

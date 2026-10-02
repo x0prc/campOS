@@ -11,6 +11,7 @@ license = "GPL-3.0-or-later"
 
 [project.scripts]
 campctl = "campd.cli:main"
+camp-bootctl = "campd.bootctl:main"
 
 [tool.setuptools.packages.find]
 include = ["campd*"]

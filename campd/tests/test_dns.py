@@ -30,6 +30,14 @@ def test_render_base_config():
     assert "address=/" not in out  # no blocklist -> no sinkholes
 
 
+def test_render_upstream_no_loop():
+    cfg = DnsConfig(upstream=["1.1.1.1", "9.9.9.9"])
+    out = render_dnsmasq(cfg, domains=[])
+    assert "no-resolv\n" in out
+    assert "server=1.1.1.1\n" in out
+    assert "server=9.9.9.9\n" in out
+
+
 def test_render_sinkholes_both_families():
     out = render_dnsmasq(DnsConfig(), domains=["ads.example.com"])
     assert "address=/ads.example.com/0.0.0.0\n" in out

@@ -15,6 +15,8 @@ block_internal_mics = true
 blocklists = []
 listen = "127.0.0.1"
 port = 53
+# Upstream resolvers (dnsmasq no-resolv; never loops through resolv.conf).
+upstream = ["9.9.9.9", "149.112.112.112"]
 
 [waydroid]
 auto_freeze = true

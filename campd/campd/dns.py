@@ -60,6 +60,9 @@ def render_dnsmasq(cfg: DnsConfig, domains: list[str] | None = None) -> str:
     lines.append(f"listen-address={cfg.listen}\n")
     lines.append("bind-interfaces\n")
     lines.append(f"port={cfg.port}\n")
+    lines.append("no-resolv\n")  # never read /etc/resolv.conf (it points here)
+    for upstream in cfg.upstream:
+        lines.append(f"server={upstream}\n")
     lines.append("stop-dns-rebind\n")
     lines.append("rebind-localhost-ok\n")
     for domain in domains:

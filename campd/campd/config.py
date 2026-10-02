@@ -28,6 +28,13 @@ class DnsConfig:
     blocklists: list[str] = field(default_factory=list)
     listen: str = "127.0.0.1"
     port: int = 53
+    # Explicit upstreams (dnsmasq no-resolv) so forwarding never loops back
+    # through /etc/resolv.conf (which points apps at the local resolver).
+    # Default: Quad9 — privacy-respecting, malware-blocking; override in
+    # campd.toml.
+    upstream: list[str] = field(
+        default_factory=lambda: ["9.9.9.9", "149.112.112.112"]
+    )
 
 
 @dataclass
