@@ -28,11 +28,12 @@ echo "    userpatches: $HERE/userpatches"
 cd "$ARMBIAN_SRC"
 ./compile.sh \
   BOARD="$BOARD" \
-  BRANCH=current \
+  BRANCH=oldlts \
   RELEASE=bookworm \
   BUILD_MINIMAL=yes \
   BUILD_DESKTOP=no \
   KERNEL_CONFIGURE=no \
+  KERNEL_BTF=no \
   CLEAN_LEVEL=none \
   USERPATCHES_PATH="$HERE/userpatches"
 
