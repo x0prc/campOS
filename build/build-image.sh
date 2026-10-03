@@ -26,6 +26,9 @@ echo "    armbian:    $ARMBIAN_SRC"
 echo "    userpatches: $HERE/userpatches"
 
 cd "$ARMBIAN_SRC"
+# Docker VM has only 3.8 GiB; Armbian's default is -j12 (150% of 8 CPUs)
+# which OOM-kills the kernel build. 2 jobs keeps peak RSS well under the VM.
+export CPUTHREADS="${CPUTHREADS:-2}"
 ./compile.sh \
   BOARD="$BOARD" \
   BRANCH=oldlts \
