@@ -1,0 +1,56 @@
+name: build-image
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "build/**"
+      - "campd/**"
+      - ".github/workflows/build-image.yml"
+
+concurrency:
+  group: build-image
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc \
+            /opt/hostedtoolcache/CodeQL || true
+          df -h /
+
+      - name: Clone Armbian
+        run: git clone --depth=1 https://github.com/armbian/build.git build/armbian-build
+
+      - name: Build campOS image
+        env:
+          DOCKER: "no" # native build on the runner (no nested docker)
+          CPUTHREADS: "6" # 150% of 4 vCPUs; 16 GiB RAM has headroom
+          DEBIAN_FRONTEND: noninteractive
+        run: ./build/build-image.sh
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            build/build.log
+            build/armbian-build/output/logs/**
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload image
+        uses: actions/upload-artifact@v4
+        with:
+          name: campos-image
+          path: build/armbian-build/output/images/*
+          retention-days: 7
+          if-no-files-found: error
