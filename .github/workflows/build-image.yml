@@ -31,7 +31,7 @@ jobs:
 
       - name: Build campOS image
         env:
-          DOCKER: "no" # native build on the runner (no nested docker)
+          PREFER_DOCKER: "no" # native build on the runner (no nested docker)
           CPUTHREADS: "6" # 150% of 4 vCPUs; 16 GiB RAM has headroom
           DEBIAN_FRONTEND: noninteractive
         run: ./build/build-image.sh
