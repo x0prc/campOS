@@ -29,6 +29,14 @@ jobs:
       - name: Clone Armbian
         run: git clone --depth=1 https://github.com/armbian/build.git build/armbian-build
 
+      - name: Restore build cache (kernel objects, rootfs)
+        uses: actions/cache@v4
+        with:
+          path: build/armbian-build/cache
+          key: armbian-cache-meson64-oldlts-${{ github.run_id }}
+          restore-keys: |
+            armbian-cache-meson64-oldlts-
+
       - name: Build campOS image
         env:
           PREFER_DOCKER: "no" # native build on the runner (no nested docker)
