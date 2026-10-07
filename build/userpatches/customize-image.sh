@@ -7,7 +7,7 @@
 # - installs the campd privacy daemon (staged at /tmp/campd by
 #   customize-image-host.sh)
 # - installs the privacy stack: nftables, dnsmasq, python3
-# - points the system resolver at campd's local dnsmasq
+# - enables the campOS services (runtime resolver pin lives in campd.service)
 set -euo pipefail
 
 echo "campOS: installing base privacy stack"
@@ -32,9 +32,10 @@ python3 -m pip install --no-cache-dir --break-system-packages /tmp/campd \
     || python3 -m pip install --no-cache-dir /tmp/campd
 rm -rf /tmp/campd
 
-# Apps must use campd's local resolver; dnsmasq forwards upstream itself
-# (no-resolv + server= lines in the drop-in). Stop DHCP from clobbering it.
-echo "nameserver 127.0.0.1" > /etc/resolv.conf
+# NOTE: do not touch /etc/resolv.conf here — Armbian runs more apt steps
+# after this script; a pinned resolver would break them (and a redirect
+# follows the systemd-resolved stub symlink). The runtime pin is done by
+# campd.service ExecStartPre, before the firewall goes up.
 mkdir -p /etc/NetworkManager/conf.d
 cat > /etc/NetworkManager/conf.d/campos-dns.conf <<'EOF'
 [main]

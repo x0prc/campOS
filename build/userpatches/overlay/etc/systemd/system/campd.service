@@ -11,6 +11,10 @@ Wants=network-pre.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
+# Point the system resolver at campd's dnsmasq before anything needs DNS.
+# rm first: the image may ship a systemd-resolved stub symlink (a bare
+# redirect would write into /run and vanish on reboot).
+ExecStartPre=/bin/sh -c 'rm -f /etc/resolv.conf && printf "nameserver 127.0.0.1\n" > /etc/resolv.conf'
 # Order matters: fail-safe first. If firewall apply fails, later steps are
 # skipped and networking stays blocked (privacy preserved, journal has error).
 ExecStart=/usr/local/bin/campctl firewall apply
