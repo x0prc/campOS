@@ -6,9 +6,12 @@
 # Armbian only bind-mounts ${SRC}/{lib,config,extensions,packages,patch,
 # tools,userpatches} (docker.sh), i.e. armbian-build/userpatches. Our
 # userpatches live next to armbian-build (build/userpatches) so they stay
-# in git, and campd/ sits above that. Without these mounts the container
-# cannot see ${USERPATCHES_PATH}, customize-image.sh never gets copied
-# into the chroot, and the build silently produces a vanilla image.
+# in git, and campd/ sits above that. build-image.sh symlinks
+# armbian-build/userpatches -> ../userpatches so the SRC mount already
+# carries our content; these extra binds cover the cases where
+# USERPATCHES_PATH keeps its sibling absolute value (mount of the sibling
+# path) and where it resolves through ${SRC} (campd at /campd, which is
+# what customize-image-host.sh computes from ${SRC}/userpatches).
 #
 # This hook runs on the host (docker args are assembled host-side), where
 # both paths exist. Native builds never call it.
@@ -20,6 +23,7 @@ function host_pre_docker_launch() {
 	DOCKER_EXTRA_ARGS+=(
 		"--mount" "type=bind,source=${USERPATCHES_PATH},target=${USERPATCHES_PATH}"
 		"--mount" "type=bind,source=${campos_root}/campd,target=${campos_root}/campd"
+		"--mount" "type=bind,source=${campos_root}/campd,target=/campd"
 	)
 	return 0
 }

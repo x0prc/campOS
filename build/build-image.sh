@@ -25,6 +25,17 @@ echo "    board:      $BOARD"
 echo "    armbian:    $ARMBIAN_SRC"
 echo "    userpatches: $HERE/userpatches"
 
+# Armbian's entrypoint force-sets USERPATCHES_PATH=${SRC}/userpatches in some
+# code paths (docker), which made local builds silently pick up the stock
+# example userpatches instead of ours. Point ${SRC}/userpatches at our dir so
+# BOTH possible values resolve to the same content.
+if [[ -L "$ARMBIAN_SRC/userpatches" ]]; then
+    ln -sfn ../userpatches "$ARMBIAN_SRC/userpatches"
+else
+    rm -rf "$ARMBIAN_SRC/userpatches" # Armbian's shipped examples (restored on fresh clone)
+    ln -s ../userpatches "$ARMBIAN_SRC/userpatches"
+fi
+
 cd "$ARMBIAN_SRC"
 # Docker VM has only 3.8 GiB; Armbian's default is -j12 (150% of 8 CPUs)
 # which OOM-kills the kernel build. 2 jobs keeps peak RSS well under the VM.
