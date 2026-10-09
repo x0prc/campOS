@@ -36,6 +36,14 @@ else
     ln -s ../userpatches "$ARMBIAN_SRC/userpatches"
 fi
 
+# Stage campd inside userpatches so the chroot hook can find it through
+# whatever USERPATCHES_PATH resolves to (sibling path or ${SRC}/userpatches).
+# The docker container only mounts ${SRC}/userpatches, not campd/ itself.
+rm -rf "$HERE/userpatches/.campd-src"
+mkdir -p "$HERE/userpatches/.campd-src"
+rsync -a --exclude '__pycache__' --exclude '.pytest_cache' --exclude '.venv' \
+    "$HERE/campd/" "$HERE/userpatches/.campd-src/"
+
 cd "$ARMBIAN_SRC"
 # Docker VM has only 3.8 GiB; Armbian's default is -j12 (150% of 8 CPUs)
 # which OOM-kills the kernel build. 2 jobs keeps peak RSS well under the VM.

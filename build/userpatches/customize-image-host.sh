@@ -4,7 +4,17 @@
 # customize-image.sh can pip-install it. Keep this file shell-safe:
 # it runs inside Armbian's shell with set -e active.
 
-CAMPD_SRC="${CAMPD_SRC:-$(cd "$(dirname "${USERPATCHES_PATH}")/.." && pwd)/campd}"
+# Resolve campd from whichever USERPATCHES_PATH Armbian ends up using:
+# 1. explicit override
+# 2. staged copy inside userpatches (build-image.sh rsyncs it there; this is
+#    the only location visible to docker builds, which don't mount campd/)
+# 3. sibling layout: <root>/build/userpatches -> <root>/campd (native CI)
+if [[ -z "${CAMPD_SRC:-}" && -d "${USERPATCHES_PATH}/.campd-src/campd" ]]; then
+	CAMPD_SRC="${USERPATCHES_PATH}/.campd-src"
+fi
+if [[ -z "${CAMPD_SRC:-}" ]]; then
+	CAMPD_SRC="$(cd "$(dirname "${USERPATCHES_PATH}")/.." && pwd)/campd"
+fi
 
 if [[ ! -d "${CAMPD_SRC}/campd" ]]; then
 	# Fail loudly NOW: a silent skip produces a "successful" image with no

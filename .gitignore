@@ -13,3 +13,4 @@ build/userpatches/cache/
 build/armbian-build/
 build/build.log
 build/userpatches/*.log
+build/userpatches/.campd-src/
