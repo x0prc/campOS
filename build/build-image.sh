@@ -42,7 +42,7 @@ fi
 rm -rf "$HERE/userpatches/.campd-src"
 mkdir -p "$HERE/userpatches/.campd-src"
 rsync -a --exclude '__pycache__' --exclude '.pytest_cache' --exclude '.venv' \
-    "$HERE/campd/" "$HERE/userpatches/.campd-src/"
+    "$HERE/../campd/" "$HERE/userpatches/.campd-src/"
 
 cd "$ARMBIAN_SRC"
 # Docker VM has only 3.8 GiB; Armbian's default is -j12 (150% of 8 CPUs)
