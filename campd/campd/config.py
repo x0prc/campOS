@@ -25,7 +25,15 @@ class MicConfig:
 
 @dataclass
 class DnsConfig:
-    blocklists: list[str] = field(default_factory=list)
+    # Sources: local file paths or http(s) URLs. URL lists are downloaded
+    # by `campctl dns fetch` (needs egress) into a cache; `apply` at boot
+    # renders from cache only. Default: StevenBlack hosts — the de-facto
+    # standard adware/malware list; swap for stricter lists in campd.toml.
+    blocklists: list[str] = field(
+        default_factory=lambda: [
+            "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
+        ]
+    )
     listen: str = "127.0.0.1"
     port: int = 53
     # Explicit upstreams (dnsmasq no-resolv) so forwarding never loops back

@@ -50,3 +50,103 @@ def test_collect_and_render_pipeline(tmp_path: Path):
     cfg = DnsConfig(blocklists=[str(bl)])
     out = render_dnsmasq(cfg, collect_domains(cfg.blocklists))
     assert out.count("address=/") == 4  # 2 domains × 2 families
+
+
+def test_collect_domains_hosts_format(tmp_path: Path):
+    bl = tmp_path / "hosts.txt"
+    bl.write_text(
+        "# StevenBlack-style hosts file\n"
+        "0.0.0.0 ads.example.com\n"
+        "127.0.0.1 metrics.example.com\n"
+        ":: telemetry.example.com\n"
+        "0.0.0.0 0.0.0.0\n"  # some lists emit this; second field invalid
+        "0.0.0.0 localhost\n"  # single label -> rejected
+    )
+    domains = collect_domains([str(bl)])
+    assert domains == ["ads.example.com", "metrics.example.com",
+                       "telemetry.example.com"]
+
+
+def test_resolve_sources_cache_hit_and_miss(tmp_path: Path):
+    from campd.dns import cache_path_for, resolve_sources
+
+    url = "https://example.com/list.txt"
+    cached = cache_path_for(url, tmp_path)
+    assert not resolve_sources([url, str(tmp_path / "nope")], tmp_path)
+    cached.write_text("ads.example.com\n")
+    assert resolve_sources([url], tmp_path) == [cached]
+
+
+def test_fetch_source_atomic_and_size_cap(tmp_path: Path):
+    from campd.dns import fetch_source
+
+    class _Resp:
+        def __init__(self, data: bytes):
+            self._data = data
+
+        def read(self, n: int) -> bytes:
+            chunk, self._data = self._data[:n], self._data[n:]
+            return chunk
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+    dest = tmp_path / "sub" / "list.list"
+    size = fetch_source(
+        "https://example.com/a", dest, opener=lambda url, timeout: _Resp(b"x" * 100)
+    )
+    assert size == 100 and dest.read_bytes() == b"x" * 100
+
+    # Oversize fetch must not touch an existing cache file.
+    dest.write_text("old")
+    try:
+        fetch_source(
+            "https://example.com/a",
+            dest,
+            opener=lambda url, timeout: _Resp(b"y" * 64),
+            max_bytes=10,
+        )
+        raise AssertionError("expected OSError")
+    except OSError:
+        pass
+    assert dest.read_text() == "old"
+
+
+def test_fetch_blocklists_skips_local(tmp_path: Path):
+    from campd.dns import cache_path_for, fetch_blocklists
+
+    url = "https://example.com/list.txt"
+    results = fetch_blocklists(
+        ["/etc/campd/local.txt", url],
+        tmp_path,
+        opener=lambda u, timeout: (_ for _ in ()).throw(OSError("no egress")),
+    )
+    assert results[0] == ("/etc/campd/local.txt", "local (not fetched)")
+    assert results[1][0] == url and results[1][1].startswith("FAILED")
+    assert not cache_path_for(url, tmp_path).exists()
+
+
+def test_collect_domains_url_uses_cache_only(tmp_path: Path):
+    from campd.dns import cache_path_for
+
+    url = "https://example.com/list.txt"
+    domains = collect_domains([url], cache_dir=tmp_path)  # cache miss -> []
+    assert domains == []
+    cache_path_for(url, tmp_path).write_text("0.0.0.0 ads.example.com\n")
+    assert collect_domains([url], cache_dir=tmp_path) == ["ads.example.com"]
+
+
+def test_apply_offline_renders_and_reloads(tmp_path: Path):
+    from campd.dns import apply, cache_path_for
+
+    url = "https://example.com/list.txt"
+    cache_path_for(url, tmp_path).write_text("0.0.0.0 ads.example.com\n")
+    out = tmp_path / "campd.conf"
+    cfg = DnsConfig(blocklists=[url, str(tmp_path / "missing.txt")])
+    apply(cfg, write_path=out, cache_dir=tmp_path, reload_cmd=["true"])
+    text = out.read_text()
+    assert "address=/ads.example.com/0.0.0.0" in text
+    assert "listen-address=127.0.0.1" in text

@@ -46,6 +46,11 @@ Install phase (ADR-004 pinned choices): waydroid CLI from the official
 repo, then `waydroid init` against the **WayDroid-ATV OTA** with
 `-s VANILLA` — Lineage TV image, **no GApps, no microG**.
 
+While egress is still granted (setup phase), populate DNS blocklists:
+`campctl dns fetch` — downloads configured URL lists into
+`/var/cache/campd/blocklists` and re-applies the dnsmasq drop-in. Boot
+itself never downloads: `campctl dns apply` only renders from cache.
+
 ## Expected results
 
 - `waydroid status` → Session: RUNNING, Container: RUNNING

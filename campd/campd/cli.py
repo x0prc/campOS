@@ -47,6 +47,10 @@ def main(argv: list[str] | None = None) -> int:
     dns_sub = dns_p.add_subparsers(dest="dns_cmd", required=True)
     dns_sub.add_parser("show", help="render dnsmasq drop-in config")
     dns_sub.add_parser("apply", help="write config and reload dnsmasq")
+    dns_sub.add_parser(
+        "fetch",
+        help="download URL blocklists into cache, then apply (needs egress)",
+    )
 
     audit_p = sub.add_parser("audit", help="denied-connection log")
     audit_sub = audit_p.add_subparsers(dest="audit_cmd", required=True)
@@ -184,6 +188,9 @@ def _dns(args, cfg) -> int:
         domains = dnsmod.collect_domains(cfg.dns.blocklists)
         print(dnsmod.render_dnsmasq(cfg.dns, domains), end="")
         return 0
+    if args.dns_cmd == "fetch":
+        for source, status in dnsmod.fetch_blocklists(cfg.dns.blocklists):
+            print(f"{status}: {source}")
     try:
         dnsmod.apply(cfg.dns)
     except (FileNotFoundError, OSError) as exc:

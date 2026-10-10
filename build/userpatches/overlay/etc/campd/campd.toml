@@ -12,7 +12,9 @@ block_usb_mics = true
 block_internal_mics = true
 
 [dns]
-blocklists = []
+# Local files or http(s) URLs. URL lists load via `campctl dns fetch`
+# (cache in /var/cache/campd/blocklists); boot-time `apply` never fetches.
+blocklists = ["https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"]
 listen = "127.0.0.1"
 port = 53
 # Upstream resolvers (dnsmasq no-resolv; never loops through resolv.conf).
